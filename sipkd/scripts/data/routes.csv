@@ -30,3 +30,13 @@ id,kode,path,nama,status
 29,"group-routes-delete","/group/routes/{id}/delete","Hapus group permission",1
 30,"group-routes-act","/group/routes/{act}/act","Act grouppermission",1
 31,"upload-logo","/upload/logo","Unggah Logo",1
+2640,"ar-payment-pbb-rekap","/ar/payment/pbb/rekap","PBB Realisasi PBB",1
+2641,"ar-payment-pbb-rekap-add","/ar/payment/pbb/rekap/add","PBB Realisasi Tambah",1
+2642,"ar-payment-pbb-rekap-edit","/ar/payment/pbb/rekap/{id}/edit","PBB Realisasi Edit",1
+2643,"ar-payment-pbb-rekap-delete","/ar/payment/pbb/rekap/{id}/delete","PBB Realisasi Hapus",1
+2644,"ar-payment-pbb-rekap-save","/ar/payment/pbb/rekap/save","PBB Realisasi Simpan",1
+2645,"ar-payment-pbb-rekap-act","/ar/payment/pbb/rekap/{act}/act","PBB Realisasi Action",1
+2646,"ar-payment-pbb-rekap-post","/ar/payment/pbb/rekap/post","PBB Realisasi Posting",1
+2647,"ar-payment-pbb-rekap-unpost","/ar/payment/rekap/pbb/{id}/unpost","PBB Realisasi Un Posting",1
+2648,"ar-payment-pbb-rekap-csv","/ar/payment/pbb/rekap/csv","PBB Realisasi CSV",1
+2649,"ar-payment-pbb-rekap-pdf","/ar/payment/pbb/rekap/pdf","PBB Realisasi PDF",1

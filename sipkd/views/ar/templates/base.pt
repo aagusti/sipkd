@@ -16,6 +16,7 @@
         <ul class="dropdown-menu">
           <li><a href="/ar/invoice/pbb">Ketetapan</a></li>                
           <li><a href="/ar/payment/pbb">Penerimaan</a></li>                
+          <li><a href="/ar/payment/pbb/rekap">Rekap Penerimaan</a></li>                
         </ul>
       </li>
       <li class="dropdown">
