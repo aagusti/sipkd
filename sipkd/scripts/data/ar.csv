@@ -1,0 +1,62 @@
+id,kode,path,nama,status
+2000,"ar","/ar","Pendapatan",1
+2500,"ar-invoice-padl","/ar/invoice/padl","PADL Tagihan",1
+2501,"ar-invoice-padl-add","/ar/invoice/padl/add","PADL Tagihan Tambah",1
+2502,"ar-invoice-padl-edit","/ar/invoice/padl/{id}/edit","PADL Tagihan Edit",1
+2503,"ar-invoice-padl-delete","/ar/invoice/padl/{id}/delete","PADL Tagihan Hapus",1
+2504,"ar-invoice-padl-save","/ar/invoice/padl/save","PADL Tagihan Simpan",1
+2505,"ar-invoice-padl-act","/ar/invoice/padl/{act}/act","PADL Tagihan Read",1
+2506,"ar-invoice-padl-post","/ar/invoice/padl/post","PADL Tagihan Posting",1
+2507,"ar-invoice-padl-unpost","/ar/invoice/padl/{id}/unpost","PADL Tagihan Un Posting",1
+2508,"ar-invoice-padl-csv","/ar/invoice/padl/csv","PADL Tagihan CSV",1
+2509,"ar-invoice-padl-pdf","/ar/invoice/padl/pdf","PADL Tagihan PDF",1
+2510,"ar-payment-padl","/ar/payment/padl","PADL Penerimaan",1
+2511,"ar-payment-padl-add","/ar/payment/padl/add","PADL Penerimaan Tambah",1
+2512,"ar-payment-padl-edit","/ar/payment/padl/{id}/edit","PADL Penerimaan Edit",1
+2513,"ar-payment-padl-delete","/ar/payment/padl/{id}/delete","PADL Penerimaan Hapus",1
+2514,"ar-payment-padl-save","/ar/payment/padl/save","PADL Penerimaan Simpan",1
+2515,"ar-payment-padl-act","/ar/payment/padl/{act}/act","PADL Penerimaan Action",1
+2516,"ar-payment-padl-post","/ar/payment/padl/post","PADL Penerimaan Posting",1
+2517,"ar-payment-padl-unpost","/ar/payment/padl/{id}/unpost","PADL Penerimaan Un Posting",1
+2518,"ar-payment-padl-csv","/ar/payment/padl/csv","PADL Penerimaan CSV",1
+2519,"ar-payment-padl-pdf","/ar/payment/padl/pdf","PADL Penerimaan PDF",1
+2520,"ar-invoice-pbb","/ar/invoice/pbb","PBB Tagihan",1
+2521,"ar-invoice-pbb-add","/ar/invoice/pbb/add","PBB Tagihan Tambah",1
+2522,"ar-invoice-pbb-edit","/ar/invoice/pbb/{id}/edit","PBB Tagihan Edit",1
+2523,"ar-invoice-pbb-delete","/ar/invoice/pbb/{id}/delete","PBB Tagihan Hapus",1
+2524,"ar-invoice-pbb-save","/ar/invoice/pbb/save","PBB Tagihan Simpan",1
+2525,"ar-invoice-pbb-act","/ar/invoice/pbb/{act}/act","PBB Tagihan Action",1
+2526,"ar-invoice-pbb-post","/ar/invoice/pbb/post","PBB Tagihan Posting",1
+2527,"ar-invoice-pbb-unpost","/ar/invoice/pbb/{id}/unpost","PBB Tagihan Un Posting",1
+2528,"ar-invoice-pbb-csv","/ar/invoice/pbb/csv","PBB Tagihan CSV",1
+2529,"ar-invoice-pbb-pdf","/ar/invoice/pbb/pdf","PBB Tagihan PDF",1
+2530,"ar-invoice-bphtb","/ar/invoice/bphtb","BPHTB Tagihan",1
+2531,"ar-invoice-bphtb-add","/ar/invoice/bphtb/add","BPHTB Tagihan Tambah",1
+2532,"ar-invoice-bphtb-edit","/ar/invoice/bphtb/{id}/edit","BPHTB Tagihan Edit",1
+2533,"ar-invoice-bphtb-delete","/ar/invoice/bphtb/{id}/delete","BPHTB Tagihan Hapus",1
+2534,"ar-invoice-bphtb-save","/ar/invoice/bphtb/save","BPHTB Tagihan Simpan",1
+2535,"ar-invoice-bphtb-act","/ar/invoice/bphtb/{act}/act","BPHTB Tagihan Action",1
+2536,"ar-invoice-bphtb-post","/ar/invoice/bphtb/post","BPHTB Tagihan Posting",1
+2537,"ar-invoice-bphtb-unpost","/ar/invoice/bphtb/{id}/unpost","BPHTB Tagihan Un Posting",1
+2538,"ar-invoice-bphtb-csv","/ar/invoice/bphtb/csv","BPHTB Tagihan CSV",1
+2539,"ar-invoice-bphtb-pdf","/ar/invoice/bphtb/pdf","BPHTB Tagihan PDF",1
+2540,"ar-payment-pbb","/ar/payment/pbb","PBB Realisasi PBB",1
+2541,"ar-payment-pbb-add","/ar/payment/pbb/add","PBB Realisasi Tambah",1
+2542,"ar-payment-pbb-edit","/ar/payment/pbb/{id}/edit","PBB Realisasi Edit",1
+2543,"ar-payment-pbb-delete","/ar/payment/pbb/{id}/delete","PBB Realisasi Hapus",1
+2544,"ar-payment-pbb-save","/ar/payment/pbb/save","PBB Realisasi Simpan",1
+2545,"ar-payment-pbb-act","/ar/payment/pbb/{act}/act","PBB Realisasi Action",1
+2546,"ar-payment-pbb-post","/ar/payment/pbb/post","PBB Realisasi Posting",1
+2547,"ar-payment-pbb-unpost","/ar/payment/pbb/{id}/unpost","PBB Realisasi Un Posting",1
+2548,"ar-payment-pbb-csv","/ar/payment/pbb/csv","PBB Realisasi CSV",1
+2549,"ar-payment-pbb-pdf","/ar/payment/pbb/pdf","PBB Realisasi PDF",1
+2550,"ar-payment-bphtb","/ar/payment/bphtb","BPHTB Realisasi",1
+2551,"ar-payment-bphtb-add","/ar/payment/bphtb/add","BPHTB Realisasi Tambah",1
+2552,"ar-payment-bphtb-edit","/ar/payment/bphtb/{id}/edit","BPHTB Realisasi Edit",1
+2553,"ar-payment-bphtb-delete","/ar/payment/bphtb/{id}/delete","BPHTB Realisasi Hapus",1
+2554,"ar-payment-bphtb-save","/ar/payment/bphtb/save","BPHTB Realisasi Simpan",1
+2555,"ar-payment-bphtb-act","/ar/payment/bphtb/{act}/act","BPHTB Realisasi Action",1
+2556,"ar-payment-bphtb-post","/ar/payment/bphtb/post","BPHTB Realisasi Posting",1
+2557,"ar-payment-bphtb-unpost","/ar/payment/bphtb/{id}/unpost","BPHTB Realisasi Un Posting",1
+2558,"ar-payment-bphtb-csv","/ar/payment/bphtb/csv","BPHTB Realisasi CSV",1
+2559,"ar-payment-bphtb-pdf","/ar/payment/bphtb/pdf","BPHTB Realisasi PDF",1
