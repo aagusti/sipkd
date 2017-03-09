@@ -68,8 +68,8 @@ def post_ketetapan(request, data):
             row_skp.kenaikan = 0
             row_skp.npwpd    = row["npwpd"][-10:]
             row_skp.tglskp   = datetime.strptime(row["tgl_tetap"], "%Y-%m-%d")
-            row_skp.penyetor = row["nama"]
-            row_skp.alamat   = row["alamat"]
+            row_skp.penyetor = row["nama"][:100]
+            row_skp.alamat   = row["alamat"][:200]
             row_skp.uraiskp  = row["rekening_nm"]
             row_skp.tgltempo = datetime.strptime(row["jth_tempo"], "%Y-%m-%d")
             #row_skp.tglvalid = datetime.now() diset setelah item di post
@@ -109,7 +109,8 @@ def post_ketetapan(request, data):
                              "message":str(e)}) # data tidak berhasil diposting
             resp['code'] = CODE_DATA_INVALID
             resp['message'] = 'INVALID DATA'
-        
+            print str(e)
+
     resp['params'] = dict(data=ret_data)
     return resp
     
@@ -165,7 +166,8 @@ def unpost_ketetapan(request, data):
                              "message":str(e)}) # data gagal di unpost
             resp['code'] = CODE_DATA_INVALID
             resp['message'] = 'DATA INVALID'
-            
+            print str(e)
+
     resp['params'] = dict(data=ret_data)
     return resp    
 
@@ -290,6 +292,7 @@ def post_realisasi(request, data):
                              "message":str(e)}) # data gagal di unpost
             resp['code'] = CODE_DATA_INVALID
             resp['message'] = 'Data Invalid'
+            print str(e)
     resp['params'] = dict(data=ret_data)
     return resp
     
@@ -355,7 +358,8 @@ def unpost_realisasi(request, data):
                              "message":str(e)}) # data gagal di unpost
             resp['code'] = CODE_DATA_INVALID
             resp['message'] = "DATA INVALID"
-            
+            print str(e)
+
     resp['params'] = dict(data=ret_data)
     return resp    
     
