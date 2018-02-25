@@ -92,12 +92,13 @@ def view_act(request):
                       ARInvoicePbb.posted,
                       ARInvoicePbb.tgl_tetap,
                       ARInvoicePbb.tgl_validasi,
-                      ).filter(ARInvoicePbb.tahun==ses['tahun'],
-                               between(ARInvoicePbb.tgl_tetap, ses['tanggal'], ses['tanggal_to']),
+                      ).filter(between(ARInvoicePbb.tgl_tetap, ses['tanggal'], 
+                               ses['tanggal_to']),
                                ARInvoicePbb.posted==ses['posted']
                       )
-                    #).order_by(ARInvoicePbb.kode.asc()
-                    #)
+            if ses['tahun']:
+                query = query.filter(ARInvoicePbb.tahun==ses['tahun'])
+
             rowTable = DataTables(req, ARInvoicePbb, query, columns)
             return rowTable.output_result()
 
