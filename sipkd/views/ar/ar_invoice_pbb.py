@@ -363,13 +363,13 @@ def view_posting(request):
             n_id = n_id + 1
 
             id_inv = row.id
-            
+            keybend = '2084_' 
             if request.session['posted']==0:
                 row_skp = SipkdSkp()
                 row_skp.unitkey  = SipkdUnit.get_key_by_kode(row.unit_kd)
                 row_skp.noskp    = "%s" % (row.kode)
                 row_skp.kdstatus = '70'
-                row_skp.keybend  = '1797_'
+                row_skp.keybend  = keybend
                 row_skp.idxkode  = '1' #pendapatan
                 row_skp.kenaikan = 0
                 row_skp.npwpd    = row.kode[:18][:-10]
@@ -383,7 +383,7 @@ def view_posting(request):
                 SipkdDBSession.add(row_skp)
                 SipkdDBSession.flush()
 
-                if row.pokok>0:
+                if row.pokok<>0:
                     row_skpdet = SipkdSkpDet()
                     row_skpdet.unitkey = row_skp.unitkey
                     row_skpdet.noskp   = row_skp.noskp

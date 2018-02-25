@@ -374,8 +374,8 @@ def view_posting(request):
             id_inv = row.id
 
             if request.session['posted']==0:
-                unitkey = SipkdUnit.get_key_by_kode(row.unit_kd)
-                kodekey = row.kode
+                unitkey = SipkdUnit.get_key_by_kode('3.01.01.02.') #row.unit_kd)
+                kodekey = '-'.join([row.tgl_trans.strftime('%Y%m%d'),row.kode])
                 #CEK DULU DATA SKP
                 #row_skp = SipkdDBSession.query(SipkdSkp).\
                 #                         filter_by(UNITKEY = unitkey,
@@ -389,13 +389,18 @@ def view_posting(request):
                     statuskd = '63' #Penerimaan (Rek.Bend)-Tanpa Penetapan
                 else:
                     statuskd = '64' #Penerimaan (Rek.Bend)-Penetapan
-                row_tbp = SipkdTbp()
+                
+                row_tbp = SipkdDBSession.query(SipkdTbp).\
+                        filter_by(notbp=kodekey, unitkey=unitkey).first()
+                if not row_tbp:
+                    row_tbp = SipkdTbp()
+                keybend = '2084_'
                 row_tbp.unitkey  = unitkey
                 row_tbp.notbp    = kodekey 
-                row_tbp.keybend1 = '1797_'
+                row_tbp.keybend1 = keybend
 
                 row_tbp.kdstatus = statuskd
-                row_tbp.keybend2 = '1797_'
+                row_tbp.keybend2 = keybend
                 row_tbp.idxkode  = '1' #pendapatan
                 row_tbp.tgltbp   = row.tgl_trans
                 row_tbp.penyetor = row.nama
@@ -406,7 +411,12 @@ def view_posting(request):
                 SipkdDBSession.flush()
                 
                 if row.pokok+row.denda+row.bunga>0:  
-                    row_tbpdet = SipkdTbpDet()
+                    mtgkey = SipkdRek4.get_key_by_kode(row.rekening_kd)
+                    row_tbpdet = SipkdDBSession.query(SipkdTbpDet).\
+                            filter_by(notbp=kodekey, unitkey=unitkey, mtgkey=mtgkey).\
+                            first()
+                    if not row_tbpdet:
+                        row_tbpdet = SipkdTbpDet()
                     row_tbpdet.unitkey = unitkey
                     row_tbpdet.notbp   = kodekey
                     row_tbpdet.nilai   = row.pokok+row.denda+row.bunga
@@ -415,16 +425,20 @@ def view_posting(request):
                     SipkdDBSession.add(row_tbpdet)
                     SipkdDBSession.flush()
                 
-                   
-                row_bku = SipkdBkuTbp()
+                keybend = '2084_'
+                row_bku = SipkdDBSession.query(SipkdBkuTbp).\
+                        filter_by(notbp=kodekey, unitkey=unitkey, nobkuskpd=kodekey).\
+                        first()
+                if not row_bku:
+                    row_bku = SipkdBkuTbp()
                 row_bku.unitkey     = unitkey
                 row_bku.nobkuskpd   = kodekey
                 row_bku.notbp       = kodekey
-                row_bku.idxttd      = '1797_'
+                row_bku.idxttd      = keybend
                 row_bku.tglbkuskpd  = row.tgl_trans
                 row_bku.uraian      = row.nama
                 row_bku.tglvalid    = row.tgl_trans
-                row_bku.keybend     = '1797_'
+                row_bku.keybend     = keybend
                 SipkdDBSession.add(row_bku)
                 SipkdDBSession.flush()
                 row_bku.tglvalid    = row.tgl_trans
@@ -455,8 +469,8 @@ def view_posting(request):
                 DBSession.add(row)
                 DBSession.flush()
             else:
-                unitkey = SipkdUnit.get_key_by_kode(row.unit_kd)
-                notbp = row.kode
+                unitkey = SipkdUnit.get_key_by_kode('3.01.01.02.') #row.unit_kd)
+                notbp = '-'.join([row.tgl_trans.strftime('%Y%m%d'),row.kode])
                 row_bku = SipkdDBSession.query(SipkdBkuTbp).\
                                          filter_by(unitkey = unitkey,
                                                    notbp   = notbp,
@@ -509,7 +523,7 @@ def view_unposting(request):
         request.session.flash('Data Belum di posting', 'error')
         return route_list(request)
     id_inv = row.id
-    unitkey = SipkdUnit.get_key_by_kode(row.unit_kd)
+    unitkey = SipkdUnit.get_key_by_kode('3.01.01.02.') #row.unit_kd)
     notbp = row.kode
             
     row_tbpdet = SipkdDBSession.query(SipkdTbpDet).\

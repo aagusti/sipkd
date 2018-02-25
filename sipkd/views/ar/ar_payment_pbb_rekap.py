@@ -371,30 +371,24 @@ def view_posting(request):
             n_id = n_id + 1
 
             id_inv = row.id
-
+            keybend = '2084_'
             if request.session['posted']==0:
-                unitkey = SipkdUnit.get_key_by_kode(row.unit_kd)
+                unitkey = SipkdUnit.get_key_by_kode('3.01.01.02.') #row.unit_kd)
                 kodekey = row.kode
-                #CEK DULU DATA SKP
-                #row_skp = SipkdDBSession.query(SipkdSkp).\
-                #                         filter_by(UNITKEY = unitkey,
-                #                                   NOSKP   = row.ref_kode) #cek by no bayar
-                #if row_skp:
-                #    statuskd = '64' #Penerimaan (Rek.Bend)-Penetapan
-                #else:
-                #    statuskd = '63' #Penerimaan (Rek.Bend)-Tanpa Penetapan
-                
-                #if not row.ref_kode or row.ref_kode=='0' or row.ref_kode=='00':
-                #    statuskd = '63' #Penerimaan (Rek.Bend)-Tanpa Penetapan
-                #else:
                 statuskd = '64' #Penerimaan (Rek.Bend)-Penetapan
-                row_tbp = SipkdTbp()
+                row_tbp = SipkdDBSession.query(SipkdTbp).\
+                        filter(SipkdTbp.notbp == kodekey,
+                                SipkdTbp.unitkey == unitkey).first()
+                if not row_tbp:
+                    row_tbp = SipkdTbp()
+
+
                 row_tbp.unitkey  = unitkey
                 row_tbp.notbp    = kodekey 
-                row_tbp.keybend1 = '1797_'
+                row_tbp.keybend1 = keybend
 
                 row_tbp.kdstatus = statuskd
-                row_tbp.keybend2 = '1797_'
+                row_tbp.keybend2 = keybend
                 row_tbp.idxkode  = '1' #pendapatan
                 row_tbp.tgltbp   = row.tgl_trans
                 row_tbp.penyetor = 'Bank'#row.uraian
@@ -403,27 +397,58 @@ def view_posting(request):
                 row_tbp.tglvalid = row.tgl_trans
                 SipkdDBSession.add(row_tbp)
                 SipkdDBSession.flush()
-                
-                if row.pokok+row.denda+row.bunga>0:  
-                    row_tbpdet = SipkdTbpDet()
+                if row.pokok+row.denda+row.bunga>0:
+                    rekening_key =  SipkdRek4.get_key_by_kode(row.rekening_kd)
+                    row_tbpdet =  SipkdDBSession.query(SipkdTbpDet).\
+                            filter(SipkdTbpDet.notbp == kodekey,
+                                    SipkdTbpDet.mtgkey == rekening_key,
+                                    SipkdTbpDet.unitkey  == unitkey
+                                    ).first()
+                    if not row_tbpdet:
+                        row_tbpdet = SipkdTbpDet()
+                    
                     row_tbpdet.unitkey = unitkey
                     row_tbpdet.notbp   = kodekey
-                    row_tbpdet.nilai   = row.pokok+row.denda+row.bunga
-                    row_tbpdet.mtgkey  = SipkdRek4.get_key_by_kode(row.rekening_kd)
+                    row_tbpdet.nilai   = row.pokok
+                    row_tbpdet.mtgkey  = rekening_key
                     row_tbpdet.nojetra = '11' #Penerimaan STS/TBP
                     SipkdDBSession.add(row_tbpdet)
                     SipkdDBSession.flush()
                 
-                #Insert into BKU   
-                row_bku = SipkdBkuTbp()
+                if row.denda+row.bunga>0:
+                    rekening_key =  SipkdRek4.get_key_by_kode('4.1.4.07.12.')
+                    row_tbpdet =  SipkdDBSession.query(SipkdTbpDet).\
+                            filter(SipkdTbpDet.notbp == kodekey,
+                                    SipkdTbpDet.mtgkey == rekening_key,
+                                     SipkdTbpDet.unitkey  == unitkey 
+                                    ).first()
+                    if not row_tbpdet:
+                        row_tbpdet = SipkdTbpDet()
+                        
+                    row_tbpdet.unitkey = unitkey
+                    row_tbpdet.notbp   = kodekey
+                    row_tbpdet.nilai   = row.denda+row.bunga
+                    row_tbpdet.mtgkey  = rekening_key
+                    row_tbpdet.nojetra = '11' #Penerimaan STS/TBP
+                    SipkdDBSession.add(row_tbpdet)
+                    SipkdDBSession.flush()
+                keybend = '2084_'
+                #Insert into BKU  
+                row_bku = SipkdDBSession.query(SipkdBkuTbp).\
+                        filter(SipkdBkuTbp.unitkey    == unitkey,
+                                SipkdBkuTbp.nobkuskpd == kodekey,
+                                SipkdBkuTbp.notbp     == kodekey).first()
+                if not row_bku:        
+                    row_bku = SipkdBkuTbp()
+                
                 row_bku.unitkey     = unitkey
                 row_bku.nobkuskpd   = kodekey
                 row_bku.notbp       = kodekey
-                row_bku.idxttd      = '1797_'
+                row_bku.idxttd      = keybend
                 row_bku.tglbkuskpd  = row.tgl_trans
                 row_bku.uraian      = row.uraian
                 row_bku.tglvalid    = row.tgl_trans
-                row_bku.keybend     = '1797_'
+                row_bku.keybend     = keybend
                 SipkdDBSession.add(row_bku)
                 SipkdDBSession.flush()
                 row_bku.tglvalid    = row.tgl_trans
@@ -454,7 +479,7 @@ def view_posting(request):
                 DBSession.add(row)
                 DBSession.flush()
             else:
-                unitkey = SipkdUnit.get_key_by_kode(row.unit_kd)
+                unitkey = SipkdUnit.get_key_by_kode('3.01.01.02.') #row.unit_kd)
                 notbp = row.kode
                 row_bku = SipkdDBSession.query(SipkdBkuTbp).\
                                          filter_by(unitkey = unitkey,
@@ -508,7 +533,7 @@ def view_unposting(request):
         request.session.flash('Data Belum di posting', 'error')
         return route_list(request)
     id_inv = row.id
-    unitkey = SipkdUnit.get_key_by_kode(row.unit_kd)
+    unitkey = SipkdUnit.get_key_by_kode('3.01.01.02.') #row.unit_kd)
     notbp = row.kode
             
     row_tbpdet = SipkdDBSession.query(SipkdTbpDet).\
