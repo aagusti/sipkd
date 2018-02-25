@@ -11,7 +11,7 @@ from ...models.sipkd import SipkdDBSession
 from ...models.ar import ARInvoiceTrans
 from ...models.sipkd import SipkdSkp, SipkdSkpDet, SipkdUnit, SipkdRek4
 from ...tools import _DTstrftime, _DTnumber_format
-from ...views.base_views import base_view
+from ...views.base_views import BaseView
 from datatables import ColumnDT, DataTables
 
 SESS_ADD_FAILED  = 'Tambah Invoice gagal'
@@ -61,7 +61,7 @@ def list_form(request, class_form):
 
 
     
-class view_invoice(base_view):
+class view_invoice(BaseView):
     @view_config(route_name="ar-invoice-padl", renderer="templates/ar-invoice-padl/list.pt",
                  permission="ar-invoice-padl")
     def view_list(self):

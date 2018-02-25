@@ -20,7 +20,8 @@ from ..models import (
     Group
     )
     
-from datatables import ColumnDT, DataTables
+from ..views.common import ColumnDT, DataTables    
+
     
 
 SESS_ADD_FAILED = 'Tambah group gagal'
@@ -38,7 +39,7 @@ class AddSchema(colander.Schema):
                     colander.String(),
                     oid = "description",
                     title = "Deskripsi",)
-					
+
 class EditSchema(AddSchema):
     id = colander.SchemaNode(colander.String(),
             missing=colander.drop,
@@ -65,15 +66,15 @@ def gaji_group_act(request):
     
     if url_dict['act']=='grid':
         columns = []
-        columns.append(ColumnDT('id'))
-        columns.append(ColumnDT('group_name'))
-        columns.append(ColumnDT('description'))
-        columns.append(ColumnDT('member_count'))
+        columns.append(ColumnDT(Group.id, mData="id"))
+        columns.append(ColumnDT(Group.group_name, mData="name"))
+        columns.append(ColumnDT(Group.description, mData="desc"))
+        columns.append(ColumnDT(Group.member_count, mData="member"))
         
-        query = DBSession.query(Group)
-        rowTable = DataTables(req, Group, query, columns)
+        query = DBSession.query().select_from(Group)
+        rowTable = DataTables(req.GET, query, columns)
         return rowTable.output_result()
-		
+
     elif url_dict['act']=='headofnama':
         term = 'term' in params and params['term'] or '' 
         rows = DBSession.query(Group.id, Group.group_name
@@ -168,10 +169,10 @@ def id_not_found(request):
     return route_list()
 
 @view_config(route_name='group-edit', renderer='templates/group/add.pt',
-             permission='edit')
-def view_group_edit(request):
-    request = request
-    row = Group.query_id(request.matchdict['id']).first()
+             permission='group-edit')
+def view_edit(request):
+    #request = request
+    row = query_id(request).first()
     if not row:
         return id_not_found(request)
     form = get_form(request, EditSchema)
@@ -198,7 +199,7 @@ def view_group_edit(request):
 ##########    
 @view_config(route_name='group-delete', renderer='templates/group/delete.pt',
              permission='delete')
-def view_group_delete(request):
+def view_delete(request):
     request = request
     q = Group.query_id(request.matchdict['id'])
     row = q.first()
@@ -219,3 +220,55 @@ def view_group_delete(request):
     return dict(row=row,
                  form=form.render())
 
+##########
+# RPT    #
+##########    
+from ..report_tools import open_rml_row, open_rml_pdf, pdf_response, csv_response
+
+@view_config(route_name='group-rpt', permission='group-rpt')
+def view_rpt(request):
+    def query_reg():
+        return DBSession.query(Group.group_name, Group.description, 
+                    Group.member_count).order_by(Group.group_name)
+    params   = request.params
+    url_dict = request.matchdict
+    if url_dict['rpt']=='pdf' :
+        query = query_reg()
+        _here = os.path.dirname(__file__)
+        path = os.path.join(os.path.dirname(_here), 'static')
+        logo = path + "/img/logo.png"
+        line = path + "/img/line.png"
+        
+        path = os.path.join(os.path.dirname(_here), 'reports')
+        rml_row = open_rml_row(path+'/group.row.rml')
+        
+        rows=[]
+        for r in query.all():
+            s = rml_row.format(group_name=r.group_name, 
+                               description=r.description, 
+                               member_count=r.member_count
+                               )
+            rows.append(s)
+        
+        pdf, filename = open_rml_pdf(path+'/group.rml', rows=rows, 
+                            company=request.company,
+                            departement = request.departement,
+                            logo = logo,
+                            line = line,
+                            address = request.address)
+        return pdf_response(request, pdf, filename)
+        
+    elif url_dict['rpt']=='csv' :
+        query = query_reg() 
+        row = query.first()
+        header = row.keys()
+        rows = []
+        for item in query.all():
+            rows.append(list(item))
+
+        filename = 'user.csv'
+        value = {
+                  'header': header,
+                  'rows'  : rows,
+                } 
+        return csv_response(request, value, filename)

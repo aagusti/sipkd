@@ -1,6 +1,6 @@
 import os
 import uuid
-#from osipkd.tools import row2dict, xls_reader
+#from okeuangan.tools import row2dict, xls_reader
 from datetime import datetime
 from sqlalchemy import not_, func
 from pyramid.view import (
@@ -16,8 +16,8 @@ from deform import (
     ValidationFailure,
     )
 from ..models import DBSession, GroupRoutePermission, Group, Route
-from datatables import ColumnDT, DataTables
-#from osipkd.views.base_view import BaseViews
+from ..views.common import ColumnDT, DataTables
+#from okeuangan.views.base_view import BaseViews
     
 
 SESS_ADD_FAILED = 'Tambah routes gagal'
@@ -53,7 +53,7 @@ class AddSchema(colander.Schema):
                     oid = 'route_id')
     route_nm  = colander.SchemaNode(
                     colander.String(),
-                    #widget = route_widget,
+                    widget = route_widget,
                     title ='Route',
                     oid = 'route_nm')
 
@@ -83,13 +83,14 @@ def group_routes_act(request):
     
     if url_dict['act']=='grid':
         columns = []
-        columns.append(ColumnDT('group_id'))
-        columns.append(ColumnDT('route_id'))
-        columns.append(ColumnDT('groups.group_name'))
-        columns.append(ColumnDT('routes.nama'))
-        columns.append(ColumnDT('routes.path'))
-        query = DBSession.query(GroupRoutePermission).join(Group).join(Route)
-        rowTable = DataTables(req, GroupRoutePermission, query, columns)
+        columns.append(ColumnDT(GroupRoutePermission.group_id, mData="group_id", global_search=False))
+        columns.append(ColumnDT(GroupRoutePermission.route_id, mData="route_id", global_search=False))
+        columns.append(ColumnDT(Group.group_name, mData="group_nama"))
+        columns.append(ColumnDT(Route.nama, mData="route_nama"))
+        columns.append(ColumnDT(Route.path, mData="route_path"))
+        query = DBSession.query().select_from(
+            GroupRoutePermission, Group, Route).join(Group).join(Route)
+        rowTable = DataTables(req.GET, query, columns)
         return rowTable.output_result()
         
     elif url_dict['act']=='changeid':

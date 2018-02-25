@@ -27,44 +27,47 @@
       var oTableUrl = "/group/routes/grid/act";
         
       $(document).ready(function () {
-        oTable = $('#table1').dataTable({
-          "sDom"           : '<"toolbar">lfrtip',
-          "sAjaxSource"    : oTableUrl,
-          "bStateSave"     : true,
-          "bServerSide"    : true,
-          "bProcessing"    : true,
-          "bScrollCollapse": true,
-          "bSort"          : true,
-          "bInfo"          : false,
-          "bFilter"        : true,
-          "bAutoWidth"     : false,
-          "bPaginate"      : true,
-          "sPaginationType": "full_numbers",
+        oTable = $('#table1').DataTable({
+          dom           : '<"toolbar">lfrtip',
+          processing    : true,
+          serverSide    : true,
+          ajax          : oTableUrl,
+          stateSave     : true,
+          stateDuration : 1,
+          scrollCollapse: true,
+          sort          : true,
+          info          : false,
+          filter        : true,
+          autoWidth     : false,
+          paginate      : true,
+          paginationType: "full_numbers",
           
-          "lengthMenu": [
-              [10, 25, 50, 100, 250],
-              [10, 25, 50, 100, 250]
+          lengthMenu: [
+              [10, 25, 50, 100, -1],
+              [10, 25, 50, 100, 'Semua']
           ],
-          "aoColumnDefs": [{
-                        "bSearchable": false,
-                        "bVisible": false,
-                        "aTargets": [0,1]
-                    }],
-          "aoColumns": [
-              {"width": "100px"},
-              {"width": "100px"},
-              null,
-              null,
-              null
+          //columnDefs: [{
+          //              searchable: false,
+          //              visible: false,
+          //              targets: [0]
+          //          }],
+          columns: [
+              { "data": "group_id", "visible":false, "orderable": false, "searchable":false},
+              { "data": "route_id", "visible":false, "orderable": false, "searchable":false},
+              { "data": "group_nama", "width": "200px", "class":"left"},
+              { "data": "route_nama", "width": "200px", "class":"left"},
+              { "data": "route_path"},
           ]
         });
           
         var tb_array = [
           '<div class="btn-group pull-left">',
           '	<button id="btn_add"    class="btn btn btn-primary" type="button">Tambah</button>',
+          '	<button id="btn_edit"   class="btn btn btn-warning" type="button">Edit</button>',
           '	<button id="btn_delete" class="btn btn btn-danger"  type="button">Hapus</button>',
-          '	<button id="btn_print"  class="btn btn btn-primary" type="button">Cetak</button>',
-          '	<button id="btn_close"  class="btn btn btn-warning" type="button">Tutup</button>',
+          '	<!--<button id="btn_csv"  class="btn btn btn-primary" type="button">CSV</button>',
+          '	<button id="btn_pdf"  class="btn btn btn-primary" type="button">PDF</button>-->',
+          '	<button id="btn_close"  class="btn btn btn-success" type="button">Tutup</button>',
           '	&nbsp;',
           '</div>',
         ];
@@ -77,14 +80,11 @@
             if ($(this).hasClass('selected')) {
                 $(this).removeClass('selected');
             } else {
-                iPos = oTable.fnGetPosition(this);
-                var aData = oTable.fnGetData(iPos);
-                //mID = aData[0];
+                var aData = oTable.row( this ).data();
                 oTable.$('tr.selected').removeClass('selected');
                 $(this).addClass('selected');
-                mID  = aData[0];
-                mID2 = aData[1];
-                
+                mID  = aData.group_id;
+                mID2 = aData.route_id;
                 oTable.$('tr.row_selected').removeClass('row_selected');
                 $(this).addClass('row_selected');
                 
