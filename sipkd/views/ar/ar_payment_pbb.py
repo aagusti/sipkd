@@ -364,9 +364,9 @@ def view_posting(request):
                 n_posted = n_posted + 1
                 continue
 
-            if request.session['posted']==1 and not row.posted:
-                n_posted = n_posted + 1
-                continue
+            #if request.session['posted']==1 and not row.posted:
+            #    n_posted = n_posted + 1
+            #    continue
 
             n_id = n_id + 1
 
@@ -388,13 +388,18 @@ def view_posting(request):
                     statuskd = '63' #Penerimaan (Rek.Bend)-Tanpa Penetapan
                 else:
                     statuskd = '64' #Penerimaan (Rek.Bend)-Penetapan
-                row_tbp = SipkdTbp()
+                row_tbp = SipkdDBSession.query(SipkdTbp).\
+                        filter(SipkdTbp.notbp == kodekey,
+                               SipkdTbp.unitkey == unitkey).first()
+                if not row_tbp:
+                    row_tbp = SipkdTbp()
+                keybend = '2084_'
                 row_tbp.unitkey  = unitkey
                 row_tbp.notbp    = kodekey 
-                row_tbp.keybend1 = '1797_'
+                row_tbp.keybend1 = keybend
 
                 row_tbp.kdstatus = statuskd
-                row_tbp.keybend2 = '1797_'
+                row_tbp.keybend2 = keybend
                 row_tbp.idxkode  = '1' #pendapatan
                 row_tbp.tgltbp   = row.tgl_trans
                 row_tbp.penyetor = row.nama
@@ -404,26 +409,57 @@ def view_posting(request):
                 SipkdDBSession.add(row_tbp)
                 SipkdDBSession.flush()
                 
-                if row.pokok+row.denda+row.bunga>0:  
-                    row_tbpdet = SipkdTbpDet()
+                if row.pokok+row.denda+row.bunga>0:
+                    rekening_key =  SipkdRek4.get_key_by_kode(row.rekening_kd)
+                    row_tbpdet =  SipkdDBSession.query(SipkdTbpDet).\
+                            filter(SipkdTbpDet.notbp == SipkdTbp.notbp,
+                                   SipkdTbpDet.mtgkey == rekening_key,
+                                   SipkdTbpDet.unitkey  == unitkey
+                                    ).first()
+                    if not row_tbpdet:
+                        row_tbpdet = SipkdTbpDet()
+                    
                     row_tbpdet.unitkey = unitkey
                     row_tbpdet.notbp   = kodekey
-                    row_tbpdet.nilai   = row.pokok+row.denda+row.bunga
-                    row_tbpdet.mtgkey  = SipkdRek4.get_key_by_kode(row.rekening_kd)
+                    row_tbpdet.nilai   = row.pokok
+                    row_tbpdet.mtgkey  = rekening_key
                     row_tbpdet.nojetra = '11' #Penerimaan STS/TBP
                     SipkdDBSession.add(row_tbpdet)
                     SipkdDBSession.flush()
-                
+                if row.denda+row.bunga>0:
+                    rekening_key =  SipkdRek4.get_key_by_kode('4.1.4.07.12.')
+                    row_tbpdet =  SipkdDBSession.query(SipkdTbpDet).\
+                            filter(SipkdTbpDet.notbp == SipkdTbp.notbp,
+                                    SipkdTbpDet.mtgkey == rekening_key
+                                    ).first()
+                    if not row_tbpdet:
+                        row_tbpdet = SipkdTbpDet()
+
+                    row_tbpdet.unitkey = unitkey
+                    row_tbpdet.notbp   = kodekey
+                    row_tbpdet.nilai   = row.denda+row.bunga
+                    row_tbpdet.mtgkey  = rekening_key
+                    row_tbpdet.nojetra = '11' #Penerimaan STS/TBP
+                    SipkdDBSession.add(row_tbpdet)
+                    SipkdDBSession.flush()
+
                 #Insert into BKU   
+                row_bku = SipkdDBSession.query(SipkdBkuTbp).\
+                        filter(SipkdBkuTbp.unitkey    == unitkey,
+                                SipkdBkuTbp.nobkuskpd == kodekey,
+                                SipkdBkuTbp.notbp     == kodekey).first()
+                if not row_bku:
+                    row_bku = SipkdBkuTbp()
+                keybend = '2084_'
                 row_bku = SipkdBkuTbp()
                 row_bku.unitkey     = unitkey
                 row_bku.nobkuskpd   = kodekey
                 row_bku.notbp       = kodekey
-                row_bku.idxttd      = '1797_'
+                row_bku.idxttd      = keybend
                 row_bku.tglbkuskpd  = row.tgl_trans
                 row_bku.uraian      = row.nama
                 row_bku.tglvalid    = row.tgl_trans
-                row_bku.keybend     = '1797_'
+                row_bku.keybend     = keybend
                 SipkdDBSession.add(row_bku)
                 SipkdDBSession.flush()
                 row_bku.tglvalid    = row.tgl_trans

@@ -105,7 +105,7 @@ class ARPaymentTrans(DefaultModel, Base):
 
 
 class ARInvoicePbb(DefaultModel, Base):
-    __tablename__  = 'ar_invoice_pbb'
+    __tablename__  = 'ar_invoice_pbb_rekap'
     __table_args__ = {'extend_existing':True, 'schema' : schematbl,}
     tahun           = Column(Integer, nullable=False)
     unit_kd         = Column(String,  nullable=False) 

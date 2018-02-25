@@ -45,6 +45,7 @@ def post_ketetapan(request, data):
         try:
         #if 1=1:
             #CHECK DULU DI SIPKD
+            row["unit_kd"] = "3.01.01.02."
             keykode = "%s-%s" %(row["source"],get_kode(row["kode"]))
             rows = SipkdDBSession.query(SipkdSkp).\
                       filter(SipkdSkp.unitkey == SipkdUnit.get_key_by_kode(row["unit_kd"]),
@@ -138,6 +139,7 @@ def unpost_ketetapan(request, data):
     for row in data:
         try:
         #if 1==1:
+            row["unit_kd"] = "3.01.01.02."
             kodekey = "%s-%s" %(row["source"],get_kode(row["kode"]))
             query = SipkdDBSession.query(SipkdSkp).\
                       filter(SipkdSkp.unitkey == SipkdUnit.get_key_by_kode(row["unit_kd"]),
@@ -212,14 +214,16 @@ def post_realisasi(request, data):
         try:
         #if 1==1:
             tanggal = datetime.strptime(row["tgl_trans"], "%Y-%m-%d")
-
+            row["unit_kd"]  = "3.01.01.02."
             unitkey = SipkdUnit.get_key_by_kode(row["unit_kd"])
+            #unitkey = '208_'
             kodekey = "%s-%s-%s" % (row["source"],get_kode(row["kode"]),tanggal.strftime('%d%m'))
             
             rows = SipkdDBSession.query(SipkdTbp).\
                     filter(SipkdTbp.unitkey == SipkdUnit.get_key_by_kode(row["unit_kd"]),
                            SipkdTbp.notbp == kodekey,
                           ).first()
+            keybend = '2084_'
             if rows:
                 ret_data.append({"kode": row["kode"],
                                  "error":1,
@@ -236,10 +240,10 @@ def post_realisasi(request, data):
             row_tbp = SipkdTbp()
             row_tbp.unitkey  = unitkey
             row_tbp.notbp    = kodekey 
-            row_tbp.keybend1 = '1797_'
+            row_tbp.keybend1 = keybend
 
             row_tbp.kdstatus = statuskd
-            row_tbp.keybend2 = '1797_'
+            row_tbp.keybend2 = keybend
             row_tbp.idxkode  = '1' #pendapatan
             row_tbp.tgltbp   = tanggal
             row_tbp.penyetor = row["nama"]
@@ -273,11 +277,11 @@ def post_realisasi(request, data):
             row_bku.unitkey     = unitkey
             row_bku.nobkuskpd   = kodekey
             row_bku.notbp       = kodekey
-            row_bku.idxttd      = '1797_'
+            row_bku.idxttd      = keybend
             row_bku.tglbkuskpd  = tanggal
             row_bku.uraian      = row["nama"]
             row_bku.tglvalid    = tanggal
-            row_bku.keybend     = '1797_'
+            row_bku.keybend     = keybend
             SipkdDBSession.add(row_bku)
             SipkdDBSession.flush()
             row_bku.tglvalid    = tanggal
@@ -321,7 +325,7 @@ def unpost_realisasi(request, data):
         try:
         #if 1==1:
             tanggal = datetime.strptime(row["tgl_trans"], "%Y-%m-%d")
-
+            row["unit_kd"] = "3.01.01.02."
             unitkey = SipkdUnit.get_key_by_kode(row["unit_kd"])
             kodekey = "%s-%s-%s" % (row["source"],get_kode(row["kode"]),tanggal.strftime('%d%m'))
             row_tbp = SipkdDBSession.query(SipkdTbp).\

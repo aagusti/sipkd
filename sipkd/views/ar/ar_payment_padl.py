@@ -371,7 +371,7 @@ def view_posting(request):
             n_id = n_id + 1
 
             id_inv = row.id
-
+            keybend = '2084_'
             if request.session['posted']==0:
                 unitkey = SipkdUnit.get_key_by_kode(row.unit_kd)
                 kodekey = row.kode
@@ -391,10 +391,10 @@ def view_posting(request):
                 row_tbp = SipkdTbp()
                 row_tbp.unitkey  = unitkey
                 row_tbp.notbp    = kodekey 
-                row_tbp.keybend1 = '1797_'
+                row_tbp.keybend1 = keybend
 
                 row_tbp.kdstatus = statuskd
-                row_tbp.keybend2 = '1797_'
+                row_tbp.keybend2 = keybend
                 row_tbp.idxkode  = '1' #pendapatan
                 row_tbp.tgltbp   = row.tgl_trans
                 row_tbp.penyetor = row.nama
@@ -419,11 +419,11 @@ def view_posting(request):
                 row_bku.unitkey     = unitkey
                 row_bku.nobkuskpd   = kodekey
                 row_bku.notbp       = kodekey
-                row_bku.idxttd      = '1797_'
+                row_bku.idxttd      = keybend
                 row_bku.tglbkuskpd  = row.tgl_trans
                 row_bku.uraian      = row.nama
                 row_bku.tglvalid    = row.tgl_trans
-                row_bku.keybend     = '1797_'
+                row_bku.keybend     = keybend
                 SipkdDBSession.add(row_bku)
                 SipkdDBSession.flush()
                 row_bku.tglvalid    = row.tgl_trans

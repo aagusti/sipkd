@@ -4,11 +4,11 @@
     <ul class="nav navbar-nav">
       <li tal:attributes="class request.path == '/ar' and 'active'"><a href="/ar">Home</a></li>
        <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown">PADL <b class="caret"></b></a>
+        <!--a href="#" class="dropdown-toggle" data-toggle="dropdown">PADL <b class="caret"></b></a>
         <ul class="dropdown-menu">
           <li><a href="/ar/invoice/padl">Ketetapan</a></li>                
           <li><a href="/ar/payment/padl">Penerimaan</a></li>                
-        </ul>
+        </ul-->
       </li>
       
       <li class="dropdown">
