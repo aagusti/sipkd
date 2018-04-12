@@ -82,6 +82,10 @@ class SipkdSkp(SipkdBase):
     kenaikan    = Column(Float) 
     tglvalid    = Column(DateTime) 
     
+    @classmethod
+    def query_kode(cls):
+        pass
+        
 class SipkdSkpDet(SipkdBase):
     __tablename__  = 'SKPDET'
     __table_args__ = {'extend_existing':True}    
@@ -94,6 +98,10 @@ class SipkdSkpDet(SipkdBase):
     unitkey     = Column(String(10), primary_key=True)
     noskp       = Column(String(50), primary_key=True)
     nilai       = Column(Float) 
+    @classmethod
+    def query_kode(cls):
+        pass
+    
 ################
 # TRANSAKSI TBP#
 ################
@@ -111,7 +119,10 @@ class SipkdTbp(SipkdBase):
     alamat      = Column(String(200)) 
     uraitbp     = Column(String(254)) 
     tglvalid    = Column(DateTime) 
-  
+    @classmethod
+    def query_kode(cls):
+        pass
+    
 class SipkdTbpDet(SipkdBase):
     __tablename__  = 'TBPDETD'
     __table_args__ = {'extend_existing':True}    
@@ -120,14 +131,20 @@ class SipkdTbpDet(SipkdBase):
     unitkey     = Column(String(10), primary_key=True)
     notbp       = Column(String(50), primary_key=True)
     nilai       = Column(Float)
-    
+    @classmethod
+    def query_kode(cls):
+        pass
+        
 class SipkdSkpTbp(SipkdBase):
     __tablename__  = 'SKPTBP'
     __table_args__ = {'extend_existing':True}    
     notbp   = Column(String(50), primary_key=True)
     unitkey = Column(String(10), primary_key=True)
     noskp   = Column(String(50), primary_key=True)
-  
+    @classmethod
+    def query_kode(cls):
+        pass
+    
 class SipkdBkuTbp(SipkdBase):
     __tablename__  = 'BKUTBP'
     __table_args__ = {'extend_existing':True}    
@@ -139,7 +156,10 @@ class SipkdBkuTbp(SipkdBase):
     uraian      = Column(String(254))
     tglvalid    = Column(DateTime)
     keybend     = Column(String(10))
-  
+    @classmethod
+    def query_kode(cls):
+        pass
+    
 class SipkdJurnal(SipkdBase):
     __tablename__  = 'JURNAL'
     __table_args__ = {'extend_existing':True}    
@@ -166,3 +186,7 @@ class SipkdJurnal(SipkdBase):
     nilaik     = Column(Float)
     jurnal     = Column(Integer)
     tgl_valid  = Column(DateTime)
+    @classmethod
+    def query_kode(cls):
+        pass
+    

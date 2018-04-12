@@ -18,8 +18,7 @@ from ..models import (
     Group,
     UserGroup,    )
     
-from ..views.common import ColumnDT, DataTables    
-
+from datatables import ColumnDT, DataTables
 
 
 SESS_ADD_FAILED = 'Tambah user gagal'
@@ -29,7 +28,7 @@ SESS_EDIT_FAILED = 'Edit user gagal'
 # List #
 ########    
 @view_config(route_name='user-group', renderer='templates/usergroup/list.pt',
-             permission='user-group')
+             permission='read')
 def view_list(request):
     #rows = DBSession.query(User).filter(User.id > 0).order_by('email')
     return dict(project='Keuangan')
@@ -38,7 +37,7 @@ def view_list(request):
 # Action #
 ##########    
 @view_config(route_name='user-group-act', renderer='json',
-             permission='user-group-act')
+             permission='read')
 def usr_group_act(request):
     ses = request.session
     req = request
@@ -74,35 +73,43 @@ def usr_group_act(request):
         
         rowTable = DataTables(req, User, query, columns)
         return rowTable.output_result()
+        
 #######    
 # Add #
 #######
 def form_validator(form, value):
-    def err_group_user():
+    def err_group():
         raise colander.Invalid(form,
-            "User %s Sudah ada pada Group %s" % (value['user_name'], value['group_name']))
+            'Data Sudah ada')
                 
-    q = DBSession.query(UserGroup).filter(UserGroup.user_id==value['user_id'],
-                             UserGroup.group_id==value['group_id'])
-    found = q.first()
-    if found:
-        err_group_user()
+    if 'id' in form.request.matchdict:
+        uid = form.request.matchdict['id']
+        q = DBSession.query(User).filter_by(id=uid)
+        user = q.first()
+    else:
+        user = None
+    #q = DBSession.query(UserGroup).filter(user_id==value['user_id'],
+    #                                     group_id==value['user_id'])
 
 class AddSchema(colander.Schema):
+    group_widget = widget.AutocompleteInputWidget(
+            size=60,
+            values = '/group/headofnama/act',
+            min_length=1)
+            
     user_widget = widget.AutocompleteInputWidget(
             size=60,
             values = '/user/headofnama/act',
             min_length=1)
             
-    group_name = colander.SchemaNode(
-                    colander.String(),
-                    widget=widget.TextInputWidget(),
-                    oid = "group_name"
-                    )
     user_name = colander.SchemaNode(
                     colander.String(),
                     #widget = user_widget,
-                    oid = "user_name")
+                    oid = "user_nm")
+    group_name = colander.SchemaNode(
+                    colander.String(),
+                    #widget = group_widget,
+                    oid = "group_nm")
     group_id = colander.SchemaNode(
                     colander.Integer(),
                     widget=widget.HiddenWidget(),
@@ -152,46 +159,38 @@ def session_failed(request, session_name):
     return r
     
 @view_config(route_name='user-group-add', renderer='templates/usergroup/add.pt',
-             permission='user-group-add')
+             permission='add')
 def view_add(request):
     form = get_form(request, AddSchema)
     if request.POST:
         if 'simpan' in request.POST:
-            controls = request.POST.items()
+            controls = list(request.POST.items())
             controls_dicted = dict(controls)
+            q = DBSession.query(UserGroup).filter(UserGroup.user_id==controls_dicted['user_id'],
+                                         UserGroup.group_id==controls_dicted['group_id']).first()
+            if q:
+                request.session.flash('Group User sudah ada.')
+                return dict(form=form.render(appstruct=controls_dicted))
             try:
                 c = form.validate(controls)
-            except ValidationFailure, e:
+            except ValidationFailure as e:
                 request.session[SESS_ADD_FAILED] = e.render()               
-                return HTTPFound(location=request.route_url('user-group-add'))
+                return HTTPFound(location=request.route_url('user-add'))
             save_request(controls_dicted, request)
         return route_list(request)
     elif SESS_ADD_FAILED in request.session:
         return session_failed(request, SESS_ADD_FAILED)
-    gid = 'gid' in request.params and request.params['gid'] or None
-    if gid:
-        row = Group.query_by_id(gid)
-        if row:
-            values = dict(group_id = row.id,
-                          group_name = row.group_name)
-            return dict(form=form.render(appstruct=values))
-        msg = "Group Tidak Ditemukan"
-    else:
-        msg = "Pilih Group Terlebih Dahulu"
-    request.session.flash(msg, 'error')
-    return route_list(request)
-    #return dict(form=form.render())
+    return dict(form=form)
 
 ########
 # Edit #
 ########
 def query_id(request):
-    return DBSession.query(UserGroup.user_id, UserGroup.group_id, User.user_name,
-                           Group.group_name).\
-                filter(UserGroup.user_id == User.id,
-                       UserGroup.group_id==Group.id,
-                       UserGroup.user_id==request.matchdict['id'],
-                       UserGroup.group_id==request.params['gid'])
+    return DBSession.query(UserGroup.user_id,UserGroup.group_id, User.user_name,
+                           Group.group_name).filter(UserGroup.user_id==request.matchdict['id'],
+                                                    UserGroup.group_id==request.params['gid'])
+    #return DBSession.query(UserGroup).filter_by(user_id=request.matchdict['id'],
+    #                                            group_id=request.params['gid'])
     
 def id_not_found(request):    
     msg = 'User ID %s not found.' % request.matchdict['id']
@@ -199,7 +198,7 @@ def id_not_found(request):
     return route_list(request)
 
 @view_config(route_name='user-group-edit', renderer='templates/usergroup/edit.pt',
-             permission='user-group-edit')
+             permission='edit')
 def view_edit(request):
     row = query_id(request).first()
     if not row:
@@ -207,10 +206,10 @@ def view_edit(request):
     form = get_form(request, EditSchema)
     if request.POST:
         if 'simpan' in request.POST:
-            controls = request.POST.items()
+            controls = list(request.POST.items())
             try:
                 c = form.validate(controls)
-            except ValidationFailure, e:
+            except ValidationFailure as e:
                 request.session[SESS_EDIT_FAILED] = e.render()               
                 return HTTPFound(location=request.route_url('user-group-edit',
                                   id=row.id))
@@ -219,19 +218,19 @@ def view_edit(request):
     elif SESS_EDIT_FAILED in request.session:
         return session_failed(request, SESS_EDIT_FAILED)
     values = dict(zip(row.keys(), row))
-    return dict(form=form.render(appstruct=values))
+    return dict(form=form)
 
 ##########
 # Delete #
 ##########    
 @view_config(route_name='user-group-delete', renderer='templates/usergroup/delete.pt',
-             permission='user-group-delete')
+             permission='delete')
 def view_delete(request):
     q = query_id(request)
     row = q.first()
     if not row:
         return id_not_found(request)
-    form = Form(colander.Schema(), buttons=('hapus','batal'))
+    form = Form(colander.Schema(), buttons=('hapus','cancel'))
     values= {}
     if request.POST:
         if 'hapus' in request.POST:
@@ -246,4 +245,5 @@ def view_delete(request):
             request.session.flash(msg)
         return route_list(request)
     return dict(row=row,
-                form=form.render())
+                 form=form.render())
+
