@@ -31,7 +31,6 @@ from ziggurat_foundations.models.user_permission import UserPermissionMixin
 from ziggurat_foundations.models.user_resource_permission import UserResourcePermissionMixin
 from ziggurat_foundations.models.external_identity import ExternalIdentityMixin
 from ziggurat_foundations import ziggurat_model_init
-
 from pyramid.security import (
     Allow,
     Authenticated,
@@ -39,9 +38,9 @@ from pyramid.security import (
     ALL_PERMISSIONS
     )
 from ..tools import as_timezone
-
+from .meta import Base
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-Base = declarative_base()
+#Base = declarative_base()
 
 ##############
 # Base model #
@@ -62,16 +61,18 @@ class CommonModel(object):
         date_ = getattr(self, fieldname)
         return date_ and as_timezone(date_) or None
 
-
 class DefaultModel(CommonModel):
     id = Column(Integer, primary_key=True)
 
     def save(self):
         if self.id:
-            #Who knows another user edited, so use merge ()
             DBSession.merge(self)
         else:
             DBSession.add(self)    
+        
+    @classmethod
+    def count(cls):
+        return DBSession.query(func.count('id')).scalar()
         
     @classmethod
     def query(cls):
@@ -82,22 +83,19 @@ class DefaultModel(CommonModel):
         return cls.query().filter_by(id=id)
         
     @classmethod
-    def get_by_id(cls, id):
-        return cls.query_id(id).first()                
-
-    @classmethod
     def delete(cls, id):
         cls.query_id(id).delete()
 
-
 class Group(GroupMixin, Base, CommonModel):
-    pass
+    @classmethod
+    def query_group_name(cls, group_name):
+        return DBSession.query(cls).filter_by(group_name=group_name)
 
 class GroupPermission(GroupPermissionMixin, Base):
     pass
 
 
-class UserGroup(UserGroupMixin, Base):
+class UserGroup(UserGroupMixin, Base, CommonModel):
     @classmethod
     def _get_by_user(cls, user):
         return DBSession.query(cls).filter_by(user_id=user.id).all()
@@ -108,7 +106,6 @@ class UserGroup(UserGroupMixin, Base):
         for g in cls._get_by_user(user):
             groups.append(g.group_id)
         return groups
-
 
 class GroupResourcePermission(GroupResourcePermissionMixin, Base):
     pass
@@ -128,7 +125,6 @@ class User(UserMixin, BaseModel, CommonModel, Base):
     registered_date = Column(DateTime(timezone=True),
                              nullable=False,
                              default=datetime.utcnow)
-
     def _get_password(self):
         return self._password
 
@@ -149,6 +145,25 @@ class User(UserMixin, BaseModel, CommonModel, Base):
     def nice_username(self):
         return self.user_name or self.email
 
+    def nip_pbb(self):
+        from ..tools import get_settings
+        settings = get_settings()
+        if self.user_name == 'admin':
+            return '060000000000000000'
+        
+        if "pbb.url" in settings and settings["pbb.url"]:
+            from ..pbb.models import pbbDBSession
+            from ..pbb.models.pegawai import DatLogin
+            row = pbbDBSession.query(DatLogin).\
+                    filter_by(nm_login = self.user_name).first()
+            if row:
+                return row.nip
+        return
+        
+    def kode(self):
+        pass
+        
+        
     @classmethod
     def get_by_email(cls, email):
         return DBSession.query(cls).filter_by(email=email).first()
@@ -162,11 +177,13 @@ class User(UserMixin, BaseModel, CommonModel, Base):
         if identity.find('@') > -1:
             return cls.get_by_email(identity)
         return cls.get_by_name(identity)        
-            
-
+        
+    @classmethod
+    def get_by_token(cls, token):
+        return cls.query().filter_by(security_code=token)
+    
 class ExternalIdentity(ExternalIdentityMixin, Base):
     pass
-    
 
 # It is used when there is a web request.
 class RootFactory(object):
@@ -185,56 +202,65 @@ class RootFactory(object):
           
 class KodeModel(DefaultModel):
     kode = Column(String(32))
-    disabled = Column(SmallInteger, nullable=False, default=0)
-    created  = Column(DateTime, nullable=False, default=datetime.utcnow)
+    status = Column(SmallInteger, nullable=False, default=0)
+    created  = Column(DateTime, nullable=True, default=datetime.utcnow)
     updated  = Column(DateTime, nullable=True)
-    create_uid  = Column(Integer, nullable=False, default=1)
+    create_uid  = Column(Integer, nullable=True, default=1)
     update_uid  = Column(Integer, nullable=True)
     
     @classmethod
-    def get_by_kode(cls,kode):
-        return cls.query().filter_by(kode=kode).first()
+    def query_kode(cls,kode):
+        return cls.query().filter_by(kode=kode)
         
-    @classmethod
-    def count(cls):
-        return DBSession.query(func.count('*')).scalar()
-    
+    @classmethod            
+    def get_by_kode(cls, kode):
+        return cls.query_kode(kode).first()
+                
     @classmethod
     def get_active(cls):
-        return DBSession.query(cls).filter_by(disabled=0).all()
+        return cls.query().filter_by(status=1).all()
     
+class UraianModel(DefaultModel):
+    nama = Column(String(128))
+    status = Column(SmallInteger, nullable=False, default=0)
+    created  = Column(DateTime, nullable=True, default=datetime.utcnow)
+    updated  = Column(DateTime, nullable=True)
+    create_uid  = Column(Integer, nullable=True, default=1)
+    update_uid  = Column(Integer, nullable=True)
     
-    
-#class UraianModel(KodeModel):
-#    uraian = Column(String(128))
-#    @classmethod
-#    def get_by_uraian(uraian):
-#        return cls.query().filter_by(uraian=uraian).first()
+    @classmethod
+    def query_nama(cls, nama):
+        return cls.query().filter_by(nama=nama)
         
-#    @classmethod
-#    def get_nama(uraian):
-#        return cls.query().filter_by(uraian=uraian)
-
+    @classmethod            
+    def get_by_nama(cls, nama):
+        return cls.query_nama(nama).first()        
 
 class NamaModel(KodeModel):
     nama = Column(String(128))
     
     @classmethod
-    def get_by_nama(nama):
-        return cls.query().filter_by(nama=nama).first()
-        
-    @classmethod
-    def get_nama(nama):
+    def query_nama(cls, nama):
         return cls.query().filter_by(nama=nama)
-
-class Route(Base, DefaultModel):
+        
+    @classmethod            
+    def get_by_nama(cls, nama):
+        return cls.query_nama(nama).first()        
+        
+class Route(Base, NamaModel):
     __tablename__  = 'routes'
     __table_args__ = {'extend_existing':True}
-    kode = Column(String(32))
-    nama = Column(String(128))
-    path      = Column(String(256), nullable=False)
+    kode = Column(String(128), unique=True)
+    # nama = Column(String(128), unique=True)
+    path      = Column(String(256), nullable=False, unique=True)
     status    = Column(Integer, nullable=False)
-
+    type      = Column(SmallInteger, nullable=False, server_default='0')
+                                           
+class Parameter(Base, NamaModel):
+    __tablename__  = 'parameters'
+    __table_args__ = {'extend_existing':True}
+    value      = Column(String(256), nullable=False)
+    
 class GroupRoutePermission(Base, CommonModel):
     __tablename__  = 'groups_routes_permissions'
     __table_args__ = {'extend_existing':True,}    
@@ -242,7 +268,8 @@ class GroupRoutePermission(Base, CommonModel):
     group_id = Column(Integer, ForeignKey("groups.id"),nullable=False, primary_key=True)
     routes = relationship("Route", backref=backref('routepermission'))
     groups = relationship("Group",backref= backref('grouppermission'))
-
+from .ws_user import WsUser
+from targets import Targets
 def init_model():
     ziggurat_model_init(User, Group, UserGroup, GroupPermission, UserPermission,
                    UserResourcePermission, GroupResourcePermission, Resource,
