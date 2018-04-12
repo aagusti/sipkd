@@ -20,12 +20,18 @@ from sqlalchemy.orm import (
 from zope.sqlalchemy import ZopeTransactionExtension
 import transaction
 import ziggurat_foundations.models
-from ziggurat_foundations.models import BaseModel, UserMixin, GroupMixin
-from ziggurat_foundations.models import GroupPermissionMixin, UserGroupMixin
-from ziggurat_foundations.models import GroupResourcePermissionMixin, ResourceMixin
-from ziggurat_foundations.models import UserPermissionMixin, UserResourcePermissionMixin
-from ziggurat_foundations.models import ExternalIdentityMixin
+from ziggurat_foundations.models.base import BaseModel
+from ziggurat_foundations.models.user import UserMixin
+from ziggurat_foundations.models.group import GroupMixin
+from ziggurat_foundations.models.group_permission import GroupPermissionMixin
+from ziggurat_foundations.models.user_group import UserGroupMixin
+from ziggurat_foundations.models.resource import ResourceMixin 
+from ziggurat_foundations.models.group_resource_permission import GroupResourcePermissionMixin
+from ziggurat_foundations.models.user_permission import UserPermissionMixin
+from ziggurat_foundations.models.user_resource_permission import UserResourcePermissionMixin
+from ziggurat_foundations.models.external_identity import ExternalIdentityMixin
 from ziggurat_foundations import ziggurat_model_init
+
 from pyramid.security import (
     Allow,
     Authenticated,

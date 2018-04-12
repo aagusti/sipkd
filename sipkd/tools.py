@@ -2,6 +2,7 @@ import os
 import re
 import mimetypes
 import csv
+from datetime import datetime
 from types import (
     IntType,
     LongType,
@@ -87,7 +88,7 @@ def get_settings():
     
 def get_timezone():
     settings = get_settings()
-    return pytz.timezone(settings.timezone)
+    return pytz.timezone(settings['timezone'])
 
 ########    
 # Time #
@@ -139,10 +140,23 @@ def date_from_str(value):
     return date(y, m, d)    
     
 def dmy(tgl):
-    return tgl.strftime('%d-%m-%Y')
+    if tgl:
+        return tgl.strftime('%d-%m-%Y')
+    return
+
+def dmy_to_date(tgl):
+    return datetime.strptime(tgl,'%d-%m-%Y').date()
     
 def dmyhms(t):
     return t.strftime('%d-%m-%Y %H:%M:%S')
+
+def ymd(tgl):
+    if tgl:
+        return tgl.strftime('%Y-%m-%d')
+    return
+
+def ymd_to_date(tgl):
+    return datetime.strptime(tgl,'%Y-%m-%d').date()
     
 def next_month(year, month):
     if month == 12:
@@ -255,6 +269,21 @@ class Upload(SaveFile):
         output_file.close()
         return fullpath
 
+class UploadFiles(SaveFile):
+    def save(self, fs):
+        input_file = fs.file
+        ext = get_ext(fs.filename)
+        fullpath = self.create_fullpath(ext)
+        output_file = open(fullpath, 'wb')
+        input_file.seek(0)
+        while True:
+            data = input_file.read(2<<16)
+            if not data:
+                break
+            output_file.write(data)
+        output_file.close()
+        return fullpath    
+        
 class CSVRenderer(object):
    def __init__(self, info):
       pass
@@ -279,7 +308,8 @@ class CSVRenderer(object):
       fcsv.writerows(value.get('rows', []))
 
       return fout.getvalue()    
-        
+
+# Data Table Function        
 def _DTstrftime(chain):
     ret = chain and datetime.strftime(chain, '%d-%m-%Y')
     if ret:
@@ -296,3 +326,133 @@ def _DTnumber_format(chain):
     else:
         return chain
                 
+def _DTupper(chain):
+    ret = chain.upper()
+    if ret:
+        return ret
+    else:
+        return chain
+        
+def _DTstatus(chain):
+    if chain:
+        ret = 'Aktif'
+    else:
+        ret = 'Mati'
+    if ret:
+        return ret
+    else:
+        return chain
+##########
+# String #
+##########
+def clean(s):
+    r = ''
+    for ch in s:
+        ascii = ord(ch)
+        if ascii > 126 or ascii < 32:
+            ch = ' '
+        r += ch
+    return r
+
+def to_str(s):
+    s = s or ''
+    s = type(s) in [StringType, UnicodeType] and s or str(s)
+    return clean(s)
+
+def left(s, width):
+    s = to_str(s)
+    return s.ljust(width)[:width]
+
+def right(s, width):
+    s = to_str(s)
+    return s.zfill(width)[:width]
+    
+##################
+# Data Structure #
+##################
+class FixLength(object):
+    def __init__(self, struct):
+        self.set_struct(struct)
+
+    def set_struct(self, struct):
+        self.struct = struct
+        self.fields = {}
+        for s in struct:
+            name = s[0]
+            size = s[1:] and s[1] or 1
+            typ = s[2:] and s[2] or 'A' # N: numeric, A: alphanumeric
+            self.fields[name] = {'value': None, 'type': typ, 'size': size}
+
+    def set(self, name, value):
+        self.fields[name]['value'] = value
+
+    def get(self, name):
+        v = self.fields[name]['value']
+        if v:
+            return v.strip()
+        return ''
+
+    def __setitem__(self, name, value):
+        self.set(name, value)
+
+    def __getitem__(self, name):
+        return self.get(name)
+
+    def get_raw(self):
+        s = ''
+        for name, size, typ in self.struct:
+            v = self.fields[name]['value']
+            pad_func = typ == 'N' and right or left
+            if v and typ == 'N':
+                i = int(v)
+                if v == i:
+                    v = i
+            s += pad_func(v, size)
+        return s
+        
+    def get_raw_dotted(self):
+        s = ''
+        for name, size, typ in self.struct:
+            v = self.fields[name]['value']
+            pad_func = typ == 'N' and right or left
+            if v and typ == 'N':
+                i = int(v)
+                if v == i:
+                    v = i
+            s += pad_func(v, size)
+            s += "."
+        return s[:-1]
+        
+    def set_raw(self, raw):
+        awal = 0
+        for t in self.struct:
+            name = t[0]
+            size = t[1:] and t[1] or 1
+            akhir = awal + size
+            value = raw[awal:akhir]
+            if not value:
+                return
+            self.set(name, value)
+            awal += size
+        return True
+
+    def from_dict(self, d):
+        for name in self.fields:
+            if name in d and d[name]:
+                value = d[name]
+                self.set(name, value)
+                
+        #changed 11 des 2016
+        # for name in d:
+            # value = d[name]
+            # self.set(name, value)
+
+
+    def to_dict(self):
+        r = {}
+        for name in self.fields:
+            r[name] = self.get(name)
+        return r
+
+    def length(self):
+        return len(self.get_raw())

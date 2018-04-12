@@ -39,7 +39,7 @@
                 "name"      : 'group_nm',
                 "displayKey": 'value',
             });
-
+            
             $('#group_nm').bind('typeahead:selected', function(obj, datum, name) {      
                   $('#group_id').val(datum.id);
             });
@@ -70,7 +70,7 @@
                 "name"      : 'route_nm',
                 "displayKey": 'value',
             });
-
+            
             $('#route_nm').bind('typeahead:selected', function(obj, datum, name) {      
                   $('#route_id').val(datum.id);
             });

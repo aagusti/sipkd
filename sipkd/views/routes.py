@@ -1,6 +1,6 @@
 import os
 import uuid
-#from osipkd.tools import row2dict, xls_reader
+#from okeuangan.tools import row2dict, xls_reader
 from datetime import datetime
 from sqlalchemy import not_, func
 from pyramid.view import (
@@ -19,8 +19,9 @@ from ..models import (
     DBSession,
     Route)
 
-from datatables import ColumnDT, DataTables
-#from osipkd.views.base_view import BaseViews
+from ..views.common import ColumnDT, DataTables    
+
+#from okeuangan.views.base_view import BaseViews
     
 
 SESS_ADD_FAILED = 'Tambah routes gagal'
@@ -75,14 +76,14 @@ def routes_act(request):
     
     if url_dict['act']=='grid':
         columns = []
-        columns.append(ColumnDT('id'))
-        columns.append(ColumnDT('kode'))
-        columns.append(ColumnDT('nama'))
-        columns.append(ColumnDT('path'))
-        columns.append(ColumnDT('status'))
+        columns.append(ColumnDT(Route.id, mData="id"))
+        columns.append(ColumnDT(Route.kode, mData="kode"))
+        columns.append(ColumnDT(Route.nama, mData="nama"))
+        columns.append(ColumnDT(Route.path, mData="path"))
+        columns.append(ColumnDT(Route.status, mData="status"))
         
-        query = DBSession.query(Route)
-        rowTable = DataTables(req, Route, query, columns)
+        query = DBSession.query().select_from(Route)
+        rowTable = DataTables(req.GET, query, columns)
         return rowTable.output_result()
         
     elif url_dict['act']=='headof':

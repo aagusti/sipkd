@@ -6,7 +6,7 @@
         <h3 class="panel-title">Warning</h3>
     </div>
     <div class="panel-body">
-        Hapus User Group ID #${row.user_name} ${row.group_name} ?
+        Hapus User #${row.user_name} dari Group#${row.group_name} ?
     </div>
 </div>
 

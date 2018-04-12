@@ -1,5 +1,6 @@
+import os
 from email.utils import parseaddr
-from sqlalchemy import not_
+from sqlalchemy import not_, func
 from pyramid.view import (
     view_config,
     )
@@ -16,9 +17,10 @@ from ..models import (
     DBSession,
     User,
     )
-from datatables import ColumnDT, DataTables
+from ..views.common import ColumnDT, DataTables    
 
 
+from ..tools import _DTstatus
 SESS_ADD_FAILED = 'user add failed'
 SESS_EDIT_FAILED = 'user edit failed'
 
@@ -30,59 +32,6 @@ SESS_EDIT_FAILED = 'user edit failed'
 def view_list(request):
     #rows = DBSession.query(User).filter(User.id > 0).order_by('email')
     return dict(project='Pajak Reklame')
-    
-##########                    
-# Action #
-##########    
-@view_config(route_name='user-act', renderer='json',
-             permission='user-act')
-def user_act(request):
-    ses = request.session
-    req = request
-    params = req.params
-    url_dict = req.matchdict
-    
-    if url_dict['act']=='grid':
-        columns = []
-        columns.append(ColumnDT('id'))
-        columns.append(ColumnDT('email'))
-        columns.append(ColumnDT('user_name'))
-        columns.append(ColumnDT('status'))
-        columns.append(ColumnDT('last_login_date'))
-        columns.append(ColumnDT('registered_date'))
-        
-        query = DBSession.query(User)
-        rowTable = DataTables(req, User, query, columns)
-        return rowTable.output_result()
-        
-    elif url_dict['act']=='headofnama':
-        term = 'term' in params and params['term'] or '' 
-        rows = DBSession.query(User.id, User.user_name
-                       ).filter(User.user_name.ilike('%%%s%%' % term) 
-                       ).all()
-        r = []
-        for k in rows:
-            d={}
-            d['id']          = k[0]
-            d['value']       = k[1]
-            r.append(d)
-        return r        
-        
-    elif url_dict['act']=='hon_pegawai':
-        term = 'term' in params and params['term'] or '' 
-        rows = DBSession.query(User.id, User.email
-                       ).filter(User.id!='1',
-                                User.id!='2',
-                                User.email.ilike('%%%s%%' % term) 
-                       ).all()
-        r = []
-        for k in rows:
-            d={}
-            d['id']          = k[0]
-            d['value']       = k[1]
-            r.append(d)
-        return r        
-    
     
 #######    
 # Add #
@@ -109,6 +58,7 @@ def form_validator(form, value):
         user = q.first()
     else:
         user = None
+        
     q = DBSession.query(User).filter_by(email=value['email'])
     found = q.first()
     if user:
@@ -208,7 +158,7 @@ def view_add(request):
                 c = form.validate(controls)
             except ValidationFailure, e:
                 #request.session[SESS_ADD_FAILED] = e.render()  
-                return dict(form=form)				
+                return dict(form=form)
                 return HTTPFound(location=request.route_url('user-add'))
             save_request(dict(controls), request)
         return route_list(request)
@@ -240,7 +190,6 @@ def view_edit(request):
             if row.id==1 and request.user.id>1 :
                 request.session.flash('User tidak mempunyai hak akses mengupdate data user admin', 'error')
                 return route_list(request)
-				
             controls = request.POST.items()
             try:
                 c = form.validate(controls)
@@ -270,7 +219,7 @@ def view_delete(request):
     if row.id==1 and request.user.id>1 :
         request.session.flash('User tidak mempunyai hak akses menghapus data user admin', 'error')
         return route_list(request)
-		
+
     form = Form(colander.Schema(), buttons=('delete','cancel'))
     if request.POST:
         if 'delete' in request.POST:
@@ -282,3 +231,105 @@ def view_delete(request):
     return dict(row=row,
                  form=form.render())
 
+def array_of_rows(rows):
+    r = []
+    for k in rows:
+        d={}
+        d['id']          = k[0]
+        d['value']       = k[1]
+        r.append(d)
+    return r        
+
+
+##########                    
+# Action #
+##########    
+@view_config(route_name='user-act', renderer='json',
+             permission='user-act')
+def user_act(request):
+    ses = request.session
+    req = request
+    params = req.params
+    url_dict = req.matchdict
+    
+    if url_dict['act']=='grid':
+        columns = [
+        ColumnDT(User.id, mData='id'),
+        ColumnDT(User.email, mData='email'),
+        ColumnDT(User.user_name, mData='name'),
+        ColumnDT(User.status, mData='status'), #, filter=_DTstatus
+        ColumnDT(func.to_char(User.last_login_date, 'DD-MM-YYYY'), mData='last_login'),
+        ColumnDT(func.to_char(User.registered_date, 'DD-MM-YYYY'), mData='registered'),
+        ]
+        query = DBSession.query().select_from(User)
+        rowTable = DataTables(req.GET, query, columns)
+        return rowTable.output_result()
+        
+    elif url_dict['act']=='hon':
+        term = 'term' in params and params['term'] or '' 
+        rows = DBSession.query(User.id, User.user_name
+                       ).filter(
+                            User.id>1,
+                            User.user_name.ilike('%%%s%%' % term) 
+                       ).all()
+        return array_of_rows(rows)
+        
+    elif url_dict['act']=='homail':
+        term = 'term' in params and params['term'] or '' 
+        rows = DBSession.query(User.id, User.email
+                       ).filter(User.id!='1',
+                                User.id!='2',
+                                User.email.ilike('%%%s%%' % term) 
+                       ).all()
+        return array_of_rows(rows)
+        
+##########
+# RPT    #
+##########    
+from ..report_tools import open_rml_row, open_rml_pdf, pdf_response, csv_response
+
+@view_config(route_name='user-rpt', permission='user-rpt')
+def view_rpt(request):
+    def query_reg():
+        return DBSession.query(User.user_name, User.email, 
+                    func.to_char(User.registered_date,"DD-MM-YYYY").label("registered_date")).order_by(User.user_name)
+    params   = request.params
+    url_dict = request.matchdict
+    if url_dict['rpt']=='pdf' :
+        query = query_reg()
+        _here = os.path.dirname(__file__)
+        path = os.path.join(os.path.dirname(_here), 'static')
+        logo = path + "/img/logo.png"
+        line = path + "/img/line.png"
+        
+        path = os.path.join(os.path.dirname(_here), 'reports')
+        rml_row = open_rml_row(path+'/user.row.rml')
+        
+        rows=[]
+        for r in query.all():
+            s = rml_row.format(user_name=r.user_name, email=r.email, 
+                               registered_date=r.registered_date)
+            rows.append(s)
+        
+        pdf, filename = open_rml_pdf(path+'/user.rml', rows=rows, 
+                            company=request.company,
+                            departement = request.departement,
+                            logo = logo,
+                            line = line,
+                            address = request.address)
+        return pdf_response(request, pdf, filename)
+        
+    elif url_dict['rpt']=='csv' :
+        query = query_reg() 
+        row = query.first()
+        header = row.keys()
+        rows = []
+        for item in query.all():
+            rows.append(list(item))
+
+        filename = 'user.csv'
+        value = {
+                  'header': header,
+                  'rows'  : rows,
+                } 
+        return csv_response(request, value, filename)
