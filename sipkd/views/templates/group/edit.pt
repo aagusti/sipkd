@@ -1,56 +1,49 @@
 <html metal:use-macro="load: ../main.pt">
-<div metal:fill-slot="content">
-<div  class="panel panel-default">
-    <div class="panel-heading">
-        <h3 class="panel-title">${request.title}</h3>
-    </div>
-    <div class="panel-body">
-    
-        <form id="myform" method="post" enctype="multipart/form-data" accept-charset="utf-8" 
-             class="form-horizontal">
-        <div tal:condition="'id' in form" style="display:none;">
-          <div tal:define="field form['id']">
-              ${structure:field.serialize()}
-          </div>
-        </div>
-    
-    <div class="form-group">
-        <div tal:define="field form['group_name']" id="item-${field.oid}">
-            <label for="${field.oid}" class="control-label col-md-1" id="req-${field.oid}">
-                    ${field.title}</label>
-            <div class="col-md-3">
-               ${structure:field.serialize()}
-                <p id="error-${field.oid}" class="help-block" tal:condition="field.error"
-                   tal:repeat="error field.error.messages()">
-                   ${error}</p>
-            </div>
-        </div>
-    </div>
-    <div class="form-group">
-        <div tal:define="field form['description']" id="item-${field.oid}">
-            <label for="${field.oid}" class="control-label col-md-1" id="req-${field.oid}">
-                    ${field.title}</label>
-            <div class="col-md-6">
-               ${structure:field.serialize()}
-                <p id="error-${field.oid}" class="help-block" tal:condition="field.error"
-                   tal:repeat="error field.error.messages()">
-                   ${error}</p>
-            </div>
-        </div>
-    </div><br>
-    
-    <div class="col-md-3">
-      <label class="control-label col-md-4"></label>
-      <button id="deformsave" name="simpan" type="submit" class="btn btn-primary "
-            value="simpan">Simpan</button>
-      <button id="deformcancel" name="batal" type="submit" class="btn btn-danger "
-            value="batal">Batal</button>
-    </div>
-    
-</form>
-</div>
-</div>
 
-</div>
+    <!-- content -->
+    <div metal:fill-slot="content">
+
+        <div class="row">
+            <div class="col-sm-12 col-md-12 col-lg-6">
+
+                <div  class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Edit data</h3>
+                    </div>
+
+                    <div class="panel-body">
+                        <div class="alert alert-danger" tal:condition="form and form.error and True or False">
+                            <div class="error-msg-lbl">Kesalahan Pengisian Form</div>
+                            <p class="error-msg">${form.errormsg}</p>
+                        </div>
+
+                        <form method="post" accept-charset="utf-8" id="myform" class="form-horizontal" enctype="multipart/form-data">
+                            <div class="form-group" tal:repeat="f form">
+                                <div id="item-${f.oid}" style="${f.widget.hidden and 'display:none;' or 'display:block;'}">
+                                    <label for="${f.oid}" class="control-label col-md-4 ${f.required and 'required' or ''} " id="req-${f.oid}">
+                                    ${f.title}</label>
+                                    <div class="col-md-8">
+                                        ${structure:f.serialize()}
+                                        <p id="error-${f.oid}" class="help-block" tal:condition="f.error"
+                                            tal:repeat="error f.error.messages()">
+                                            ${error}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pull-right">
+                                <button type="submit" class="btn btn-primary" id="simpan" name="simpan">Simpan</button>
+                                <button type="submit" class="btn btn-warning" id="batal"  name="batal">Tutup</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- end content -->
+
 </html>
-
