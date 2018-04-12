@@ -92,10 +92,14 @@ def view_act(request):
                       ARInvoicePbb.posted,
                       ARInvoicePbb.tgl_tetap,
                       ARInvoicePbb.tgl_validasi,
-                      ).filter(ARInvoicePbb.tahun==ses['tahun'],
-                               between(ARInvoicePbb.tgl_tetap, ses['tanggal'], ses['tanggal_to']),
-                               ARInvoicePbb.posted==ses['posted']
-                      )
+                      ).\
+                filter(
+                    between(ARInvoicePbb.tgl_tetap, ses['tanggal'], ses['tanggal_to']),
+                    ARInvoicePbb.posted==ses['posted']
+                        
+                    )
+            if ses['tahun']:
+                query = query.filter(ARInvoicePbb.tahun==ses['tahun'],)
                     #).order_by(ARInvoicePbb.kode.asc()
                     #)
             rowTable = DataTables(req, ARInvoicePbb, query, columns)
@@ -363,10 +367,11 @@ def view_posting(request):
             n_id = n_id + 1
 
             id_inv = row.id
-            keybend = '2084_' 
+            keybend = '2084_'
+            unitkey = unitkey = SipkdUnit.get_key_by_kode('3.01.01.02.') #row.unit_kd)
             if request.session['posted']==0:
                 row_skp = SipkdSkp()
-                row_skp.unitkey  = SipkdUnit.get_key_by_kode(row.unit_kd)
+                row_skp.unitkey  = unitkey #SipkdUnit.get_key_by_kode(row.unit_kd)
                 row_skp.noskp    = "%s" % (row.kode)
                 row_skp.kdstatus = '70'
                 row_skp.keybend  = keybend
@@ -452,11 +457,13 @@ def view_csv(request):
               ARInvoicePbb.posted,
               ARInvoicePbb.tgl_tetap,
               ARInvoicePbb.tgl_validasi,
-              ).filter(ARInvoicePbb.tahun==ses['tahun'],
-                       between(ARInvoicePbb.tgl_tetap, ses['tanggal'], ses['tanggal_to']),
-                       ARInvoicePbb.posted==ses['posted']
-              )
-
+              ).\
+        filter(
+            between(ARInvoicePbb.tgl_tetap, ses['tanggal'], ses['tanggal_to']),
+                    ARInvoicePbb.posted==ses['posted']
+            )
+    if ses['tahun']:
+        q = q.filter(ARInvoicePbb.tahun==ses['tahun'],)
     r = q.first()
     header = r.keys()
     query = q.all()
@@ -471,4 +478,4 @@ def view_csv(request):
     return {
       'header': header,
       'rows': rows,
-    }
+}
